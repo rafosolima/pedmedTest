@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+  db:
+    image: mariadb
+    container_name: db_mysql
+    command: mysqld --sql_mode=""
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/data:/var/lib/mysql
+      # - ./db/config:/etc/mysql
+      - ./db/dump:/dump
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+      MYSQL_DATABASE: 'cv_local'
+    networks:
+      intranet:
+        ipv4_address: 192.168.220.2
+    restart: always
+  php7:
+    image: php7.4
+    container_name: php7
+    volumes:
+      - ./apache:/var/www/html
+      - ./configs/php7/sites-available:/etc/apache2/sites-available
+    extra_hosts:
+      - "dev-construtor.com.br:127.0.0.1"
+      - "localhost.construtor.com.br:127.0.0.1"
+      - "docker.for.wsl2.host.internal:${WSL2IP}"
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      XDEBUG_CONFIG: "client_host=host.docker.internal"
+      PHP_SHORT_OPEN_TAG: "Off"
+      PHP_SERIALIZE_PRECISION: "100"
+      PHP_POST_MAX_SIZE: "256M"
+      PHP_UPLOAD_MAX_FILESIZE: "20M"
+      PHP_MEMORY_LIMIT: "256M"
+      PHP_REGISTER_GLOBALS: "On"
+      PHP_MAX_INPUT: "5000"
+      TIMEZONE: "America/Maceio"
+    networks:
+      intranet:
+        ipv4_address: 192.168.220.4
+    restart: always
+networks:
+  intranet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.220.0/24
